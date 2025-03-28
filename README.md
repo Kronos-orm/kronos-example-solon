@@ -4,15 +4,31 @@
 
 English | [简体中文](https://github.com/Kronos-orm/kronos-example-solon/blob/main/README-zh_CN.md)
 
-This is a sample project based on Solon + Kronos ORM + JDK 17 + Maven + Kotlin 2.0.0.
+This is a sample project based on Solon + Kronos ORM + JDK 17 + Maven + Kotlin 2.1.0.
 
 If you would like to learn more about Kronos, please visit [Kronos](https://www.kotlinorm.com/).
+
+## NOTICE
+**If you built failed in Intellij IDEA and build with Maven, please try to enable the following setting: Settings / Build, Execution, Deployment / Build Tools / Maven / Runner / Delegate IDE build/run actions to Maven.**
 
 ## Introducing Maven dependencies
 
 **1. Add Kronos dependency**
 
 ```xml
+    <repositories>
+    <repository>
+        <name>Central Portal Snapshots</name>
+        <id>central-portal-snapshots</id>
+        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
 
 <dependencies>
     <dependency>
@@ -26,6 +42,18 @@ If you would like to learn more about Kronos, please visit [Kronos](https://www.
 **2. Add Kotlin compiler plugin**
 
 ```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>central-portal-snapshots</id>
+        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
 
 <plugins>
     <plugin>
@@ -63,17 +91,30 @@ You can also replace it with another wrapper or customize the wrapper.
 @SolonMain
 class App
 
-val ds = BasicDataSource().apply {
-    url = "jdbc:mysql://localhost:3306/kotlinorm"
-    username = "root"
-    password = "**********"
+@Inject("\${db.url}")
+var dbUrl: String? = null
+
+@Inject("\${db.username}")
+var dbUsername: String? = null
+
+@Inject("\${db.password}")
+var dbPassword: String? = null
+
+val pool by lazy {
+    KronosBasicWrapper(
+        BasicDataSource().apply {
+            url = dbUrl
+            username = dbUsername
+            password = dbPassword
+        }
+    )
 }
 
 fun main(args: Array<String>) {
-    Kronos.apply {
-        dataSource = { KronosBasicWrapper(ds) }
-        fieldNamingStrategy = LineHumpNamingStrategy
-        tableNamingStrategy = LineHumpNamingStrategy
+    Kronos.init {
+        dataSource = { pool }
+        fieldNamingStrategy = lineHumpNamingStrategy
+        tableNamingStrategy = lineHumpNamingStrategy
     }
     Solon.start(App::class.java, args)
 }

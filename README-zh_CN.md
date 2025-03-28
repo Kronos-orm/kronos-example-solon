@@ -8,49 +8,77 @@
 
 如果您想了解更多关于Kronos的信息，请访问[Kronos](https://www.kotlinorm.com/)。
 
+## NOTICE
+**如果您在IntelliJ IDEA中构建失败，并使用Maven进行构建，请尝试启用以下设置：Settings / Build, Execution, Deployment / Build Tools / Maven / Runner / Delegate IDE build/run actions to Maven。**
+
 ## 引入Maven依赖
 
 **1. 添加Kronos依赖**
 
 ```xml
+    <repositories>
+    <repository>
+        <name>Central Portal Snapshots</name>
+        <id>central-portal-snapshots</id>
+        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
 
 <dependencies>
-    <dependency>
-        <groupId>com.kotlinorm</groupId>
-        <artifactId>kronos-core</artifactId>
-        <version>${kronos.version}</version>
-    </dependency>
+<dependency>
+    <groupId>com.kotlinorm</groupId>
+    <artifactId>kronos-core</artifactId>
+    <version>${kronos.version}</version>
+</dependency>
 </dependencies>
 ```
 
 **2. 添加Kotlin编译器插件**
 
 ```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>central-portal-snapshots</id>
+        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
 
 <plugins>
-    <plugin>
-        <groupId>org.jetbrains.kotlin</groupId>
-        <artifactId>kotlin-maven-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-            <compilerPlugins>
-                <plugin>all-open</plugin>
-                <plugin>kronos-maven-plugin</plugin>
-            </compilerPlugins>
-        </configuration>
-        <dependencies>
-            <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-allopen</artifactId>
-                <version>${kotlin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.kotlinorm</groupId>
-                <artifactId>kronos-maven-plugin</artifactId>
-                <version>${kronos.version}</version>
-            </dependency>
-        </dependencies>
-    </plugin>
+<plugin>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <artifactId>kotlin-maven-plugin</artifactId>
+    <extensions>true</extensions>
+    <configuration>
+        <compilerPlugins>
+            <plugin>all-open</plugin>
+            <plugin>kronos-maven-plugin</plugin>
+        </compilerPlugins>
+    </configuration>
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-allopen</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kotlinorm</groupId>
+            <artifactId>kronos-maven-plugin</artifactId>
+            <version>${kronos.version}</version>
+        </dependency>
+    </dependencies>
+</plugin>
 </plugins>
 ```
 
@@ -62,17 +90,30 @@
 @SolonMain
 class App
 
-val ds = BasicDataSource().apply {
-    url = "jdbc:mysql://localhost:3306/kotlinorm"
-    username = "root"
-    password = "**********"
+@Inject("\${db.url}")
+var dbUrl: String? = null
+
+@Inject("\${db.username}")
+var dbUsername: String? = null
+
+@Inject("\${db.password}")
+var dbPassword: String? = null
+
+val pool by lazy {
+    KronosBasicWrapper(
+        BasicDataSource().apply {
+            url = dbUrl
+            username = dbUsername
+            password = dbPassword
+        }
+    )
 }
 
 fun main(args: Array<String>) {
-    Kronos.apply {
-        dataSource = { KronosBasicWrapper(ds) }
-        fieldNamingStrategy = LineHumpNamingStrategy
-        tableNamingStrategy = LineHumpNamingStrategy
+    Kronos.init {
+        dataSource = { pool }
+        fieldNamingStrategy = lineHumpNamingStrategy
+        tableNamingStrategy = lineHumpNamingStrategy
     }
     Solon.start(App::class.java, args)
 }

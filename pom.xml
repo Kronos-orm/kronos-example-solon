@@ -11,6 +11,37 @@
         <relativePath />
     </parent>
 
+    <repositories>
+        <repository>
+            <name>Central Portal Snapshots</name>
+            <id>central-portal-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central-portal-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
     <groupId>com.kotlinorm</groupId>
     <artifactId>kronos-solon-example</artifactId>
     <version>1.0</version>
@@ -21,8 +52,8 @@
 
     <properties>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
-        <kotlin.version>2.0.0</kotlin.version>
-        <kronos.version>0.1.0-SNAPSHOT</kronos.version>
+        <kotlin.version>2.1.0</kotlin.version>
+        <kronos.version>0.0.2-SNAPSHOT</kronos.version>
     </properties>
 
     <dependencies>
