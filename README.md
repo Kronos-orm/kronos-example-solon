@@ -100,7 +100,7 @@ var dbUsername: String? = null
 @Inject("\${db.password}")
 var dbPassword: String? = null
 
-val pool by lazy {
+val wrapper by lazy {
     KronosBasicWrapper(
         BasicDataSource().apply {
             url = dbUrl
@@ -112,10 +112,11 @@ val pool by lazy {
 
 fun main(args: Array<String>) {
     Kronos.init {
-        dataSource = { pool }
+        dataSource = { wrapper }
         fieldNamingStrategy = lineHumpNamingStrategy
         tableNamingStrategy = lineHumpNamingStrategy
     }
+    
     Solon.start(App::class.java, args)
 }
 ```
