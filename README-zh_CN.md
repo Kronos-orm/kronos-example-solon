@@ -4,7 +4,7 @@
 
 [English](https://github.com/Kronos-orm/kronos-example-solon/blob/main/README.md) | 简体中文
 
-这是一个基于Solon + Kronos ORM + JDK 17 + Maven + Kotlin 2.0.0的示例项目。
+这是一个基于Solon + Kronos ORM + JDK 17 + Maven + Kotlin 2.4.0的示例项目。
 
 如果您想了解更多关于Kronos的信息，请访问[Kronos](https://www.kotlinorm.com/)。
 
@@ -16,25 +16,16 @@
 **1. 添加Kronos依赖**
 
 ```xml
-    <repositories>
-    <repository>
-        <name>Central Portal Snapshots</name>
-        <id>central-portal-snapshots</id>
-        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-
 <dependencies>
 <dependency>
     <groupId>com.kotlinorm</groupId>
     <artifactId>kronos-core</artifactId>
-    <version>${kronos.version}</version>
+    <version>0.2.1</version>
+</dependency>
+<dependency>
+    <groupId>com.kotlinorm</groupId>
+    <artifactId>kronos-jdbc-wrapper</artifactId>
+    <version>0.2.1</version>
 </dependency>
 </dependencies>
 ```
@@ -42,19 +33,6 @@
 **2. 添加Kotlin编译器插件**
 
 ```xml
-<pluginRepositories>
-    <pluginRepository>
-        <id>central-portal-snapshots</id>
-        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </pluginRepository>
-</pluginRepositories>
-
 <plugins>
 <plugin>
     <groupId>org.jetbrains.kotlin</groupId>
@@ -75,7 +53,7 @@
         <dependency>
             <groupId>com.kotlinorm</groupId>
             <artifactId>kronos-maven-plugin</artifactId>
-            <version>${kronos.version}</version>
+            <version>0.2.1</version>
         </dependency>
     </dependencies>
 </plugin>
@@ -87,6 +65,10 @@
 项目中使用了kronos-jdbc-wrapper，您可以按以下方式配置数据源，也可以替换为其他wrapper或自定义wrapper。
 
 ```kotlin
+import com.kotlinorm.Kronos
+import com.kotlinorm.wrappers.KronosJdbcWrapper
+import org.apache.commons.dbcp2.BasicDataSource
+
 @SolonMain
 class App
 
@@ -99,22 +81,27 @@ var dbUsername: String? = null
 @Inject("\${db.password}")
 var dbPassword: String? = null
 
-val pool by lazy {
-    KronosBasicWrapper(
-        BasicDataSource().apply {
-            url = dbUrl
-            username = dbUsername
-            password = dbPassword
-        }
-    )
+val ds by lazy {
+    BasicDataSource().apply {
+        driverClassName = System.getenv("MYSQL_DRIVER") ?: "com.mysql.cj.jdbc.Driver"
+        url = System.getenv("MYSQL_JDBC_URL") ?: dbUrl ?: "jdbc:mysql://localhost:3306/kronos_testing"
+        username = System.getenv("MYSQL_USERNAME") ?: dbUsername ?: "kronos"
+        password = System.getenv("MYSQL_PASSWORD") ?: dbPassword ?: "kronos"
+    }
 }
 
-fun main(args: Array<String>) {
-    Kronos.init {
+val pool by lazy { KronosJdbcWrapper(ds) }
+
+fun configureKronos() {
+    with(Kronos) {
         dataSource = { pool }
         fieldNamingStrategy = lineHumpNamingStrategy
         tableNamingStrategy = lineHumpNamingStrategy
     }
+}
+
+fun main(args: Array<String>) {
+    configureKronos()
     Solon.start(App::class.java, args)
 }
 ```
@@ -124,7 +111,7 @@ fun main(args: Array<String>) {
 运行项目后，访问以下URL，即可查看结果：
 
 ```
-http://localhost:8081
+http://localhost:8082
 ```
 
 如果接口返回的结果如下图所示，则表示Kronos已成功运行，编译器插件也已正常工作。

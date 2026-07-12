@@ -3,8 +3,6 @@ package com.kotlinorm.example.solon
 import com.kotlinorm.example.solon.pojos.User
 import org.noear.solon.annotation.Controller
 import org.noear.solon.annotation.Mapping
-import org.noear.solon.annotation.Param
-import org.noear.solon.core.handle.ModelAndView
 
 @Controller
 class DemoController {
@@ -13,7 +11,7 @@ class DemoController {
         val user = User()
         return mapOf(
             "title" to "Hello, this is Solon & Kronos ORM",
-            "tableName" to user.kronosTableName(),
+            "tableName" to user.__tableName,
             "columns" to user.kronosColumns().map {
                 mapOf(
                     "name" to it.name,
@@ -28,7 +26,7 @@ class DemoController {
 
     @Mapping("/hello")
     fun hello(): String {
-        val tableName = User().kronosTableName()
+        val tableName = User().__tableName
         return "hello, $tableName"
     }
 }

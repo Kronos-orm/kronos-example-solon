@@ -4,7 +4,7 @@
 
 English | [简体中文](https://github.com/Kronos-orm/kronos-example-solon/blob/main/README-zh_CN.md)
 
-This is a sample project based on Solon + Kronos ORM + JDK 17 + Maven + Kotlin 2.1.0.
+This is a sample project based on Solon + Kronos ORM + JDK 17 + Maven + Kotlin 2.4.0.
 
 If you would like to learn more about Kronos, please visit [Kronos](https://www.kotlinorm.com/).
 
@@ -16,25 +16,16 @@ If you would like to learn more about Kronos, please visit [Kronos](https://www.
 **1. Add Kronos dependency**
 
 ```xml
-    <repositories>
-    <repository>
-        <name>Central Portal Snapshots</name>
-        <id>central-portal-snapshots</id>
-        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-
 <dependencies>
     <dependency>
         <groupId>com.kotlinorm</groupId>
         <artifactId>kronos-core</artifactId>
-        <version>${kronos.version}</version>
+        <version>0.2.1</version>
+    </dependency>
+    <dependency>
+        <groupId>com.kotlinorm</groupId>
+        <artifactId>kronos-jdbc-wrapper</artifactId>
+        <version>0.2.1</version>
     </dependency>
 </dependencies>
 ```
@@ -42,19 +33,6 @@ If you would like to learn more about Kronos, please visit [Kronos](https://www.
 **2. Add Kotlin compiler plugin**
 
 ```xml
-<pluginRepositories>
-    <pluginRepository>
-        <id>central-portal-snapshots</id>
-        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </pluginRepository>
-</pluginRepositories>
-
 <plugins>
     <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
@@ -75,7 +53,7 @@ If you would like to learn more about Kronos, please visit [Kronos](https://www.
             <dependency>
                 <groupId>com.kotlinorm</groupId>
                 <artifactId>kronos-maven-plugin</artifactId>
-                <version>${kronos.version}</version>
+                <version>0.2.1</version>
             </dependency>
         </dependencies>
     </plugin>
@@ -88,6 +66,10 @@ The sample project uses kronos-jdbc-wrapper, and you can configure the data sour
 You can also replace it with another wrapper or customize the wrapper.
 
 ```kotlin
+import com.kotlinorm.Kronos
+import com.kotlinorm.wrappers.KronosJdbcWrapper
+import org.apache.commons.dbcp2.BasicDataSource
+
 @SolonMain
 class App
 
@@ -100,23 +82,27 @@ var dbUsername: String? = null
 @Inject("\${db.password}")
 var dbPassword: String? = null
 
-val wrapper by lazy {
-    KronosBasicWrapper(
-        BasicDataSource().apply {
-            url = dbUrl
-            username = dbUsername
-            password = dbPassword
-        }
-    )
+val ds by lazy {
+    BasicDataSource().apply {
+        driverClassName = System.getenv("MYSQL_DRIVER") ?: "com.mysql.cj.jdbc.Driver"
+        url = System.getenv("MYSQL_JDBC_URL") ?: dbUrl ?: "jdbc:mysql://localhost:3306/kronos_testing"
+        username = System.getenv("MYSQL_USERNAME") ?: dbUsername ?: "kronos"
+        password = System.getenv("MYSQL_PASSWORD") ?: dbPassword ?: "kronos"
+    }
 }
 
-fun main(args: Array<String>) {
-    Kronos.init {
-        dataSource = { wrapper }
+val pool by lazy { KronosJdbcWrapper(ds) }
+
+fun configureKronos() {
+    with(Kronos) {
+        dataSource = { pool }
         fieldNamingStrategy = lineHumpNamingStrategy
         tableNamingStrategy = lineHumpNamingStrategy
     }
-    
+}
+
+fun main(args: Array<String>) {
+    configureKronos()
     Solon.start(App::class.java, args)
 }
 ```
@@ -126,7 +112,7 @@ fun main(args: Array<String>) {
 After running the project, visit the following URL to view the results:
 
 ```
-http://localhost:8081
+http://localhost:8082
 ```
 
 If the interface returns the results shown below, Kronos has run successfully and the compiler plugin is working
