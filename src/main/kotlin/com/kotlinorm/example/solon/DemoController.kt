@@ -12,7 +12,7 @@ class DemoController {
         return mapOf(
             "title" to "Hello, this is Solon & Kronos ORM",
             "tableName" to user.__tableName,
-            "columns" to user.kronosColumns().map {
+            "columns" to user.__columns.map {
                 mapOf(
                     "name" to it.name,
                     "type" to it.type,
