@@ -13,7 +13,7 @@
 
     <groupId>com.kotlinorm</groupId>
     <artifactId>kronos-solon-example</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.3</version>
     
     <packaging>jar</packaging>
 
@@ -22,7 +22,7 @@
     <properties>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
         <kotlin.version>2.4.0</kotlin.version>
-        <kronos.version>0.2.1</kronos.version>
+        <kronos.version>0.2.3</kronos.version>
     </properties>
 
     <dependencies>

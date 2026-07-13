@@ -20,12 +20,12 @@
 <dependency>
     <groupId>com.kotlinorm</groupId>
     <artifactId>kronos-core</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.3</version>
 </dependency>
 <dependency>
     <groupId>com.kotlinorm</groupId>
     <artifactId>kronos-jdbc-wrapper</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.3</version>
 </dependency>
 </dependencies>
 ```
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>com.kotlinorm</groupId>
             <artifactId>kronos-maven-plugin</artifactId>
-            <version>0.2.1</version>
+            <version>0.2.3</version>
         </dependency>
     </dependencies>
 </plugin>
